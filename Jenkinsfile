@@ -56,8 +56,8 @@ pipeline {
               volumeMounts:
                 - name: jenkins-trusted-ca-bundle
                   mountPath: /etc/pki/tls/certs
-            - name: cammismaven
-              image: 136299550619.dkr.ecr.us-west-2.amazonaws.com/cammismaven:1.0.0
+            - name: cammismsbuild
+              image: 136299550619.dkr.ecr.us-west-2.amazonaws.com/cammismspapp:1.0.34
               tty: true
               command: ["/bin/bash"]
               securityContext:
@@ -103,9 +103,9 @@ pipeline {
     
       
         NEXUS_URL = "https://nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov"
-        NEXUS_REPOSITORY = "cammis-maven-repo-hosted"
-        NEXUS_CREDENTIALS = credentials('nexus-credentials')
-        MAVEN_OPTS = "-Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true"
+        NEXUS_REPOSITORY = "cammis-msbuild-repo"
+        
+        
        
   
   }
@@ -113,7 +113,7 @@ pipeline {
   stages {
     stage("Initialize") {
       steps {
-        container(name: "cammismaven") {
+        container(name: "cammismsbuild") {
           script {
             properties([
               parameters([])
@@ -133,55 +133,55 @@ pipeline {
 
             env_step_name = "set global variables"
             echo 'Initialize Slack channels and tokens'
-            // initSlackChannels()
-
-            // env_git_branch_name = BRANCH_NAME
-            // env_current_git_commit = "${env_current_git_commit[0..7]}"
-            // echo "The commit hash from the latest git current commit is ${env_current_git_commit}"
-            // currentBuild.displayName = "#${BUILD_NUMBER}"
-            // slackNotification("pipeline","${APP_NAME}-${env_git_branch_name}: <${BUILD_URL}console|build #${BUILD_NUMBER}> started.","#439FE0","false")
-          }
+            
         }
       }
     }
 
-   stage('Upload Artifact to Nexus') {
+   stage('Restore Dependencies') {
       steps {
           
-        container('cammismaven') {
-          script {
-             // Write custom settings.xml file
-                    writeFile file: 'settings.xml', text: """
-                    <settings>
-  <server>
-  <id>nexus</id>
-  <username>${NEXUS_CREDENTIALS_USR}</username>
-  <password>${NEXUS_CREDENTIALS_PSW}</password>
-  <configuration>
-    <httpsProtocols>
-      <!-- Disables SSL/TLS protocol versions -->
-      <httpsProtocol>TLSv1.2</httpsProtocol>
-    </httpsProtocols>
-    <ssl>
-      <trustAll>true</trustAll>
-    </ssl>
-  </configuration>
-</server>
-</settings>
- """
-          }
-  sh """
-    ls -l
-    mvn clean package
-    """
-    sh '''
-    JARFILE=`ls target/ |grep jar |head -1`
-          
-    curl -kv -u ${NEXUS_CREDENTIALS_USR}:${NEXUS_CREDENTIALS_PSW} -F "maven2.generate-pom=false" -F "maven2.asset1=@pom.xml" -F "maven2.asset1.extension=pom" -F "maven2.asset2=@target/$JARFILE;type=application/java-archive" -F "maven2.asset2.extension=jar" ${NEXUS_URL}/service/rest/v1/components?repository=${NEXUS_REPOSITORY}
-    '''
-
+        container('cammismsbuild') {
+          sh 'dotnet restore'
             }
           }
         }
+	stage('Build') {
+      steps {
+          
+        container('cammismsbuild') {
+          sh 'dotnet build --configuration Release'
+            }
+          }
+        }	
+	stage('Publish') {
+      steps {
+          
+        container('cammismsbuild') {
+          sh 'dotnet publish --configuration Release --output ./publish'
+            }
+          }
+        }	
+	stage('Pack NuGet Package') {
+      steps {
+          
+        container('cammismsbuild') {
+           sh 'dotnet pack -o ./publish'
+            }
+          }
+        }	
+	stage('Push to Nexus') {
+      steps {
+          
+        container('cammismsbuild') {
+          withCredentials([string(credentialsId: 'nexus-nugetkey', variable: 'NUGET_API_KEY')])  {
+                    sh """
+                    dotnet nuget push publish/* -k "${NUGET_API_KEY}" -s "${NEXUS_URL}/repository/${NEXUS_REPOSITORY}"
+                    """
+                }
+            }
+          }
+        }	
+		
       }
     }
