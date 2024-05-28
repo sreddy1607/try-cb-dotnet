@@ -176,9 +176,9 @@ pipeline {
           
         container('cammismsbuild') {
           withCredentials([string(credentialsId: 'nexus-nugetkey', variable: 'NUGET_API_KEY')])  {
-                    sh """
-                    dotnet nuget push publish/* -k "${NUGET_API_KEY}" -s "${NEXUS_URL}/repository/${NEXUS_REPOSITORY}"
-                    """
+                    sh '''
+                    dotnet nuget push publish/*.dll -k ${NUGET_API_KEY} -s "${NEXUS_URL}/repository/${NEXUS_REPOSITORY}"
+                    '''
                 }
             }
           }
