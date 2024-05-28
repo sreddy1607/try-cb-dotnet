@@ -137,6 +137,7 @@ pipeline {
         }
       }
     }
+	}
 
    stage('Restore Dependencies') {
       steps {
