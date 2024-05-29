@@ -101,13 +101,8 @@ pipeline {
     env_stage_name = ""
     env_step_name = ""
     
-      
-        NEXUS_URL = "https://nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov"
-        NEXUS_REPOSITORY = "cammis-msbuild-repo"
-        
-        
-       
-  
+    NEXUS_URL = "https://nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov"
+    NEXUS_REPOSITORY = "cammis-msbuild-repo"
   }
 
   stages {
@@ -133,56 +128,52 @@ pipeline {
 
             env_step_name = "set global variables"
             echo 'Initialize Slack channels and tokens'
-            
         }
       }
     }
-	}
+  }
 
-   stage('Restore Dependencies') {
-      steps {
-          
-        container('cammismsbuild') {
-          sh 'dotnet restore'
-            }
-          }
-        }
-	stage('Build') {
-      steps {
-          
-        container('cammismsbuild') {
-          sh 'dotnet build --configuration Release'
-            }
-          }
-        }	
-	stage('Publish') {
-      steps {
-          
-        container('cammismsbuild') {
-          sh 'dotnet publish --configuration Release --output ./publish'
-            }
-          }
-        }	
-	stage('Pack NuGet Package') {
-      steps {
-          
-        container('cammismsbuild') {
-           sh 'dotnet pack -o ./publish'
-            }
-          }
-        }	
-	stage('Push to Nexus') {
-      steps {
-          
-        container('cammismsbuild') {
-          withCredentials([string(credentialsId: 'nexus-nugetkey', variable: 'NUGET_API_KEY')])  {
-                    sh '''
-                    dotnet nuget push publish/*.dll -k ${NUGET_API_KEY} -s "${NEXUS_URL}/repository/${NEXUS_REPOSITORY}" --disable-ssl-certificate-validation
-                    '''
-                }
-            }
-          }
-        }	
-		
+  stage('Restore Dependencies') {
+    steps {
+      container('cammismsbuild') {
+        sh 'dotnet restore'
       }
     }
+  }
+
+  stage('Build') {
+    steps {
+      container('cammismsbuild') {
+        sh 'dotnet build --configuration Release'
+      }
+    }
+  }
+
+  stage('Publish') {
+    steps {
+      container('cammismsbuild') {
+        sh 'dotnet publish --configuration Release --output ./publish'
+      }
+    }
+  }
+
+  stage('Pack NuGet Package') {
+    steps {
+      container('cammismsbuild') {
+        sh 'dotnet pack -o ./publish'
+      }
+    }
+  }
+
+  stage('Push to Nexus') {
+    steps {
+      container('cammismsbuild') {
+        withCredentials([string(credentialsId: 'nexus-nugetkey', variable: 'NUGET_API_KEY')]) {
+          sh '''
+            dotnet nuget push publish/*.nupkg -k ${NUGET_API_KEY} -s "${NEXUS_URL}/repository/${NEXUS_REPOSITORY}"
+          '''
+        }
+      }
+    }
+  }
+}
