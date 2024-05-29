@@ -128,54 +128,53 @@ pipeline {
 
             env_step_name = "set global variables"
             echo 'Initialize Slack channels and tokens'
+          }
         }
       }
     }
-  }
 
-  stage('Restore Dependencies') {
-    steps {
-      container('cammismsbuild') {
-        sh 'dotnet restore'
+    stage('Restore Dependencies') {
+      steps {
+        container('cammismsbuild') {
+          sh 'dotnet restore'
+        }
       }
     }
-  }
 
-  stage('Build') {
-    steps {
-      container('cammismsbuild') {
-        sh 'dotnet build --configuration Release'
+    stage('Build') {
+      steps {
+        container('cammismsbuild') {
+          sh 'dotnet build --configuration Release'
+        }
       }
     }
-  }
 
-  stage('Publish') {
-    steps {
-      container('cammismsbuild') {
-        sh 'dotnet publish --configuration Release --output ./publish'
+    stage('Publish') {
+      steps {
+        container('cammismsbuild') {
+          sh 'dotnet publish --configuration Release --output ./publish'
+        }
       }
     }
-  }
 
-  stage('Pack NuGet Package') {
-    steps {
-      container('cammismsbuild') {
-        sh 'dotnet pack -o ./publish'
+    stage('Pack NuGet Package') {
+      steps {
+        container('cammismsbuild') {
+          sh 'dotnet pack -o ./publish'
+        }
       }
     }
-  }
 
-  stage('Push to Nexus') {
-    steps {
-      container('cammismsbuild') {
-        withCredentials([string(credentialsId: 'nexus-nugetkey', variable: 'NUGET_API_KEY')]) {
-          sh '''
-            dotnet nuget push publish/*.nupkg -k ${NUGET_API_KEY} -s "${NEXUS_URL}/repository/${NEXUS_REPOSITORY}"
-          '''
+    stage('Push to Nexus') {
+      steps {
+        container('cammismsbuild') {
+          withCredentials([string(credentialsId: 'nexus-nugetkey', variable: 'NUGET_API_KEY')]) {
+            sh '''
+              dotnet nuget push publish/*.nupkg -k ${NUGET_API_KEY} -s "${NEXUS_URL}/repository/${NEXUS_REPOSITORY}"
+            '''
+          }
         }
       }
     }
   }
 }
-}  
-  
