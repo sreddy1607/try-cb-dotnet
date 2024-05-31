@@ -41,16 +41,16 @@ pipeline {
               command: ["/bin/bash"]
               securityContext:
                 privileged: true
-              workingDir: ${workingDir}
+              workingDir: "${workingDir}"
               envFrom:
                 - configMapRef:
                     name: jenkins-agent-env
                     optional: true
               env:
                 - name: HOME
-                  value: ${workingDir}
+                  value: "${workingDir}"
                 - name: BRANCH
-                  value: ${branch}
+                  value: "${branch}"
                 - name: GIT_SSL_CAINFO
                   value: "/etc/pki/tls/certs/ca-bundle.crt"
               volumeMounts:
@@ -62,16 +62,16 @@ pipeline {
               command: ["/bin/bash"]
               securityContext:
                 privileged: true
-              workingDir: ${workingDir}
+              workingDir: "${workingDir}"
               envFrom:
                 - configMapRef:
                     name: jenkins-agent-env
                     optional: true
               env:
                 - name: HOME
-                  value: ${workingDir}
+                  value: "${workingDir}"
                 - name: BRANCH
-                  value: ${branch}
+                  value: "${branch}"
                 - name: NEXUS_ACCESS_TOKEN
                   valueFrom:
                     secretKeyRef:
@@ -103,6 +103,7 @@ pipeline {
     
     NEXUS_URL = "https://nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov"
     NEXUS_REPOSITORY = "cammis-msbuild-repo"
+    NUGET_API_KEY = "nexus-nugetkey"
   }
 
   stages {
@@ -133,16 +134,16 @@ pipeline {
       }
     }
 
-     stage('Setup HTTPS Certificates') {
-            steps {
-                container('dotnet') {
-                    echo 'Cleaning existing HTTPS certificates'
-                    sh 'dotnet dev-certs https --clean'
-                    echo 'Trusting new HTTPS certificates'
-                    sh 'dotnet dev-certs https --trust'
-                }
-            }
+    stage('Setup HTTPS Certificates') {
+      steps {
+        container('cammismsbuild') { 
+          echo 'Cleaning existing HTTPS certificates'
+          sh 'dotnet dev-certs https --clean'
+          echo 'Trusting new HTTPS certificates'
+          sh 'dotnet dev-certs https --trust'
         }
+      }
+    }
 
     stage('Restore Dependencies') {
       steps {
