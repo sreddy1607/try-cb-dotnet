@@ -133,6 +133,17 @@ pipeline {
       }
     }
 
+     stage('Setup HTTPS Certificates') {
+            steps {
+                container('dotnet') {
+                    echo 'Cleaning existing HTTPS certificates'
+                    sh 'dotnet dev-certs https --clean'
+                    echo 'Trusting new HTTPS certificates'
+                    sh 'dotnet dev-certs https --trust'
+                }
+            }
+        }
+
     stage('Restore Dependencies') {
       steps {
         container('cammismsbuild') {
