@@ -103,6 +103,7 @@ pipeline {
     
     NEXUS_URL = "https://nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov"
     NEXUS_REPOSITORY = "cammis-msbuild-repo"
+    NEXUS_CREDENTIALS = credentials('nexus-credentials')
    
   }
 
