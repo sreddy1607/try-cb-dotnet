@@ -149,7 +149,7 @@ pipeline {
     stage('Restore Dependencies') {
       steps {
         container('cammismsbuild') {
-           
+           sh 'choco --version'
           sh 'dotnet restore'
         }
       }
