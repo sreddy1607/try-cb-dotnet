@@ -184,7 +184,8 @@ pipeline {
                  script {
                             def metas = findFiles(glob: 'publish/*.dll')
                             metas.each { item ->
-                                sh "curl -k -v -u  ${NEXUS_CREDENTIALS_USR}:${NEXUS_CREDENTIALS_PSW} -H 'Content-Type: multipart/form-data' --data-binary @${item.path} '${NEXUS_URL}/service/rest/v1/components?repository=${NEXUS_REPOSITORY}'"
+                                //sh "curl -k -v -u  ${NEXUS_CREDENTIALS_USR}:${NEXUS_CREDENTIALS_PSW} -H 'Content-Type: multipart/form-data' --data-binary @${item.path} '${NEXUS_URL}/service/rest/v1/components?repository=${NEXUS_REPOSITORY}'"
+				  curl -k -v -u '${NEXUS_USERNAME}:${NEXUS_PASSWORD}' -F 'raw.asset1=@${item.path};type=application/octet-stream' -F 'raw.asset1.filename=${item.name}' '${NEXUS_URL}/service/rest/v1/components?repository=${NEXUS_REPOSITORY}'  
                             }
           }
 		
