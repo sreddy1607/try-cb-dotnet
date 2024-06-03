@@ -180,11 +180,14 @@ pipeline {
     stage('Push to Nexus') {
       steps {
         container('cammismsbuild') {
-          withCredentials([string(credentialsId: 'nexus-nugetkey', variable: 'NUGET_API_KEY')]) {
-            sh '''
-              dotnet nuget push publish/*.nupkg -k ${NUGET_API_KEY} -s "${NEXUS_URL}/repository/${NEXUS_REPOSITORY}"
-            '''
+		  scripts{
+          withCredentials([usernamePassword(credentialsId: "${NEXUS_CREDENTIALS}", usernameVariable: 'NEXUS_USERNAME', passwordVariable: 'NEXUS_PASSWORD')]) {
+             def metas = findFiles(glob: 'publish/*.dll')
+                    metas.each { item ->
+                        sh "curl -k -v -u '${NEXUS_USERNAME}':'${NEXUS_PASSWORD}' -H 'Content-Type: multipart/form-data' --data-binary @${item} ' ${NEXUS_URL}/service/rest/v1/components?repository=${NEXUS_REPOSITORY}'"
+                    }
           }
+		  }
         }
       }
     }
