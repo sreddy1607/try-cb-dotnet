@@ -181,9 +181,8 @@ pipeline {
     stage('Push to Nexus') {
       steps {
         container('cammismsbuild') {
-                    
-                        script {
-                            def metas = findFiles(glob: 'updates/*.dll')
+                 script {
+                            def metas = findFiles(glob: 'publish/*.dll')
                             metas.each { item ->
                                 sh "curl -k -v -u  ${NEXUS_CREDENTIALS_USR}:${NEXUS_CREDENTIALS_PSW} -H 'Content-Type: multipart/form-data' --data-binary @${item.path} '${NEXUS_URL}/service/rest/v1/components?repository=${NEXUS_REPOSITORY}'"
                             }
