@@ -184,7 +184,7 @@ pipeline {
         container('cammismsbuild') {
                  script {
 sh '''
-			 dotnet nuget add source "${NEXUS_URL}/repositories/${NEXUS_REPOSITORY}" --name "Nexus" --username "${NEXUS_CREDENTIALS_USR}" --password "${NEXUS_CREDENTIALS_PSW}" --store-password-in-clear-text
+			 dotnet nuget add source "${NEXUS_URL}/repository/${NEXUS_REPOSITORY}" --name "Nexus" --username "${NEXUS_CREDENTIALS_USR}" --password "${NEXUS_CREDENTIALS_PSW}" --store-password-in-clear-text
                          dotnet nuget push "publish/*" --source Nexus  
 		'''
         }
