@@ -186,13 +186,10 @@ pipeline {
       steps {
         container('cammismsbuild') {
                  script {
-                            def metas = findFiles(glob: 'publish/*.dll')
-                            metas.each { item ->
-                                //sh "curl -k -v -u  ${NEXUS_CREDENTIALS_USR}:${NEXUS_CREDENTIALS_PSW} -H 'Content-Type: multipart/form-data' --data-binary @${item.path} '${NEXUS_URL}/service/rest/v1/components?repository=${NEXUS_REPOSITORY}'"
-				  sh "curl -k -v -u '${NEXUS_USERNAME}:${NEXUS_PASSWORD}' -F 'raw.asset1=@${item.path};type=application/octet-stream' -F 'raw.asset1.filename=${item.name}' '${NEXUS_URL}/service/rest/v1/components?repository=${NEXUS_REPOSITORY}'"  
-                            }
-          }
-		
+sh '''
+			 dotnet nuget add source "${NEXUS_URL}/repositories/${NEXUS_REPOSITORY}" --name "Nexus" --username "${NEXUS_CREDENTIALS_USR}" --password "${NEXUS_CREDENTIALS_PSW}" --store-password-in-clear-text
+                         dotnet nuget push "publish/*" --source Nexus  
+		'''
         }
       }
     }
