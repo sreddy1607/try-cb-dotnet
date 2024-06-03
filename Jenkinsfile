@@ -181,14 +181,14 @@ pipeline {
     stage('Push to Nexus') {
       steps {
         container('cammismsbuild') {
-                    withCredentials([usernamePassword(credentialsId: "${NEXUS_CREDENTIALS}", usernameVariable: 'NEXUS_USERNAME', passwordVariable: 'NEXUS_PASSWORD')]) {
+                    
                         script {
                             def metas = findFiles(glob: 'updates/*.dll')
                             metas.each { item ->
-                                sh "curl -k -v -u '${NEXUS_USERNAME}:${NEXUS_PASSWORD}' -H 'Content-Type: multipart/form-data' --data-binary @${item.path} '${NEXUS_URL}/service/rest/v1/components?repository=${NEXUS_REPOSITORY}'"
+                                sh "curl -k -v -u  ${NEXUS_CREDENTIALS_USR}:${NEXUS_CREDENTIALS_PSW} -H 'Content-Type: multipart/form-data' --data-binary @${item.path} '${NEXUS_URL}/service/rest/v1/components?repository=${NEXUS_REPOSITORY}'"
                             }
           }
-		  }
+		
         }
       }
     }
