@@ -149,10 +149,7 @@ pipeline {
     stage('Restore Dependencies') {
       steps {
         container('cammismsbuild') {
-           sh '''
-	   nuget --version
-           exit 1
-	   '''
+           
           sh 'dotnet restore'
         }
       }
