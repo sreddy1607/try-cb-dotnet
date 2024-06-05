@@ -184,6 +184,9 @@ pipeline {
         container('cammismsbuild') {
                  script {
 sh '''
+                        sudo cp /etc/pki/tls/certs/ca-bundle.crt /usr/local/share/ca-certificates/
+			sudo update-ca-certificates
+
 			 dotnet nuget add source "${NEXUS_URL}/repository/${NEXUS_REPOSITORY}" --name "Nexus" --username "${NEXUS_CREDENTIALS_USR}" --password "${NEXUS_CREDENTIALS_PSW}" --store-password-in-clear-text
                          dotnet nuget push "publish/*" --source Nexus  
 		'''
