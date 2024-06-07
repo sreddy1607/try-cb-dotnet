@@ -90,7 +90,7 @@ pipeline {
     disableConcurrentBuilds()
     timeout(time: 5, unit: 'HOURS')
     skipDefaultCheckout()
-    buildDiscarder(logRotator(numToKeepStr: '20'))
+    buildDiscarder(logRotator(numToKeepStr: '70'))
   }
 
   environment {
