@@ -183,17 +183,40 @@ pipeline {
     stage('Push to Nexus') {
       steps {
         container('cammismsbuild') {
-		     
+		      script{
+// Write custom settings.xml file
+ writeFile file: 'NuGet.Config', text: """
+
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <packageSources>
+    <add key="Nexus" value="https://nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov/repository/nuet-hosted/" />
+  </packageSources>
+  <packageSourceCredentials>
+    <Nexus>
+      <add key="Username" value="nexuspoc" />
+      <add key="ClearTextPassword" value="Nexus123!" />
+    </Nexus>
+  </packageSourceCredentials>
+</configuration>
+"""
+}
               withCredentials([string(credentialsId: 'nexus-nugetkey', variable: 'NUGET_API_KEY')]) {
 sh '''
+
+pwd
+ls -l 
+cat NuGet.Config
+
                         mkdir -p /usr/local/share/ca-certificates
                         CERT_DIR="/etc/pki/ca-trust/source/anchors/"
                         cp /etc/pki/tls/certs/ca-bundle.crt /etc/pki/ca-trust/source/anchors/
                         chmod 644 ${CERT_DIR}$(basename ${CERTIFICATE_PATH})
 			           update-ca-trust
-                        ls -l
+
 			 #dotnet nuget add source "${NEXUS_URL}/repository/${NEXUS_REPOSITORY}" --name "Nexus" --username "${NEXUS_CREDENTIALS_USR}" --password "${NEXUS_CREDENTIALS_PSW}" --store-password-in-clear-text
-                         dotnet nuget push publish/* -k $NUGET_API_KEY -s Nexus --configfile NuGet.Config
+                         #dotnet nuget push publish/* -k $NUGET_API_KEY -s https://nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov/repository/nuet-hosted/
+                          dotnet nuget push publish/* -k $NUGET_API_KEY -s Nexus --configfile NuGet.Config
 		'''
         }
       }
