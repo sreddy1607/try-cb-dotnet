@@ -104,6 +104,7 @@ pipeline {
     NEXUS_URL = "https://nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov"
     NEXUS_REPOSITORY = "cammis-msbuild-repo"
     NEXUS_CREDENTIALS = credentials('nexus-credentials')
+    CERTIFICATE_PATH = "/etc/pki/tls/certs/ca-bundle.crt"
    
   }
 
@@ -182,13 +183,17 @@ pipeline {
     stage('Push to Nexus') {
       steps {
         container('cammismsbuild') {
-                 script {
+		     
+              withCredentials([string(credentialsId: 'nexus-nugetkey', variable: 'NUGET_API_KEY')]) {
 sh '''
-                         cp /etc/pki/tls/certs/ca-bundle.crt /usr/local/share/ca-certificates/
-			 update-ca-certificates
-
-			 dotnet nuget add source "${NEXUS_URL}/repository/${NEXUS_REPOSITORY}" --name "Nexus" --username "${NEXUS_CREDENTIALS_USR}" --password "${NEXUS_CREDENTIALS_PSW}" --store-password-in-clear-text
-                         dotnet nuget push "publish/*" --source Nexus  
+                        mkdir -p /usr/local/share/ca-certificates
+                        CERT_DIR="/etc/pki/ca-trust/source/anchors/"
+                        cp /etc/pki/tls/certs/ca-bundle.crt /etc/pki/ca-trust/source/anchors/
+                        chmod 644 ${CERT_DIR}$(basename ${CERTIFICATE_PATH})
+			           update-ca-trust
+                        ls -l
+			 #dotnet nuget add source "${NEXUS_URL}/repository/${NEXUS_REPOSITORY}" --name "Nexus" --username "${NEXUS_CREDENTIALS_USR}" --password "${NEXUS_CREDENTIALS_PSW}" --store-password-in-clear-text
+                         dotnet nuget push publish/* -k $NUGET_API_KEY -s Nexus --configfile NuGet.Config
 		'''
         }
       }
