@@ -90,7 +90,7 @@ pipeline {
     disableConcurrentBuilds()
     timeout(time: 5, unit: 'HOURS')
     skipDefaultCheckout()
-    buildDiscarder(logRotator(numToKeepStr: '70'))
+    buildDiscarder(logRotator(numToKeepStr: '20'))
   }
 
   environment {
@@ -136,22 +136,27 @@ pipeline {
       }
     }
 
-    stage('Setup HTTPS Certificates') {
-      steps {
-        container('cammismsbuild') { 
-          echo 'Cleaning existing HTTPS certificates'
-          sh 'dotnet dev-certs https --clean'
-          echo 'Trusting new HTTPS certificates'
-          sh 'dotnet dev-certs https --trust'
-        }
-      }
-    }
-
+    
     stage('Restore Dependencies') {
       steps {
         container('cammismsbuild') {
            
-          sh 'dotnet restore'
+          sh '''
+		  
+		   echo | openssl s_client -connect nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov:443 -servername nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov 2>/dev/null | openssl x509 -inform pem -out nexus.crt
+                        CERT_DIR="/etc/pki/ca-trust/source/anchors/"
+                        cp /etc/pki/tls/certs/ca-bundle.crt /etc/pki/ca-trust/source/anchors/
+                        chmod 644 ${CERT_DIR}$(basename ${CERTIFICATE_PATH})
+			           update-ca-trust
+					   
+					   echo | openssl s_client -connect nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov:443 -servername nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov
+		  
+		  
+		  
+		  
+		  dotnet restore
+		  		  
+		  '''
         }
       }
     }
@@ -185,13 +190,15 @@ pipeline {
         container('cammismsbuild') {
 		      script{
 // Write custom settings.xml file
- writeFile file: 'NuGet.Config', text: """
-
-<?xml version="1.0" encoding="utf-8"?>
+ writeFile file: 'NuGet.Config', text: """<?xml version="1.0" encoding="utf-8"?>
 <configuration>
-  <packageSources>
-    <add key="Nexus" value="https://nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov/repository/nuet-hosted/" />
-  </packageSources>
+   <config>
+    <add key="http-client.sslProtocols" value="Tls12,Tls13" />
+    <add key="allowUntrustedRoot" value="true" />
+  </config>
+   <packageSources>
+      <add key="Nexus" value="https://nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov/repository/nuet-hosted/" />
+   </packageSources>
   <packageSourceCredentials>
     <Nexus>
       <add key="Username" value="nexuspoc" />
@@ -201,22 +208,25 @@ pipeline {
 </configuration>
 """
 }
-              withCredentials([string(credentialsId: 'nexus-nugetkey', variable: 'NUGET_API_KEY')]) {
+ withCredentials([string(credentialsId: 'nexus-nugetkey', variable: 'NUGET_API_KEY')]) {
 sh '''
 
 pwd
 ls -l 
 cat NuGet.Config
 
-                        mkdir -p /usr/local/share/ca-certificates
+                       echo | openssl s_client -connect nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov:443 -servername nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov 2>/dev/null | openssl x509 -inform pem -out nexus.crt
                         CERT_DIR="/etc/pki/ca-trust/source/anchors/"
                         cp /etc/pki/tls/certs/ca-bundle.crt /etc/pki/ca-trust/source/anchors/
                         chmod 644 ${CERT_DIR}$(basename ${CERTIFICATE_PATH})
 			           update-ca-trust
+					   
+					   echo | openssl s_client -connect nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov:443 -servername nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov
 
-			 #dotnet nuget add source "${NEXUS_URL}/repository/${NEXUS_REPOSITORY}" --name "Nexus" --username "${NEXUS_CREDENTIALS_USR}" --password "${NEXUS_CREDENTIALS_PSW}" --store-password-in-clear-text
+
+			  #dotnet nuget add source "${NEXUS_URL}/repository/${NEXUS_REPOSITORY}" --name "Nexus" --username "${NEXUS_CREDENTIALS_USR}" --password "${NEXUS_CREDENTIALS_PSW}" --store-password-in-clear-text
                          #dotnet nuget push publish/* -k $NUGET_API_KEY -s https://nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov/repository/nuet-hosted/
-                          dotnet nuget push publish/* -k $NUGET_API_KEY -s Nexus --configfile NuGet.Config
+                          dotnet nuget push publish/* -k $NUGET_API_KEY -s Nexus 
 		'''
         }
       }
