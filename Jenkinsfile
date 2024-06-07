@@ -90,7 +90,7 @@ pipeline {
     disableConcurrentBuilds()
     timeout(time: 5, unit: 'HOURS')
     skipDefaultCheckout()
-    buildDiscarder(logRotator(numToKeepStr: '20'))
+    buildDiscarder(logRotator(numToKeepStr: '70'))
   }
 
   environment {
@@ -136,27 +136,29 @@ pipeline {
       }
     }
 
-    
+    stage('Setup HTTPS Certificates') {
+      steps {
+        container('cammismsbuild') { 
+          echo 'Cleaning existing HTTPS certificates'
+          sh'''
+          echo | openssl s_client -connect nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov:443 -servername nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov 2>/dev/null | openssl x509 -inform pem -out nexus.crt
+                        ls -l
+                        CERT_DIR="/etc/pki/ca-trust/source/anchors/"
+                        cp nexus.crt /etc/pki/ca-trust/source/anchors/
+                        chmod 644 ${CERT_DIR}$(basename nexus.crt)
+			           update-ca-trust
+					   
+					   echo | openssl s_client -connect nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov:443 -servername nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov
+					   '''
+        }
+      }
+    }
+
     stage('Restore Dependencies') {
       steps {
         container('cammismsbuild') {
            
-          sh '''
-		  
-		   echo | openssl s_client -connect nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov:443 -servername nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov 2>/dev/null | openssl x509 -inform pem -out nexus.crt
-                        CERT_DIR="/etc/pki/ca-trust/source/anchors/"
-                        cp /etc/pki/tls/certs/ca-bundle.crt /etc/pki/ca-trust/source/anchors/
-                        chmod 644 ${CERT_DIR}$(basename ${CERTIFICATE_PATH})
-			           update-ca-trust
-					   
-					   echo | openssl s_client -connect nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov:443 -servername nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov
-		  
-		  
-		  
-		  
-		  dotnet restore
-		  		  
-		  '''
+          sh 'dotnet restore'
         }
       }
     }
@@ -208,24 +210,9 @@ pipeline {
 </configuration>
 """
 }
- withCredentials([string(credentialsId: 'nexus-nugetkey', variable: 'NUGET_API_KEY')]) {
+              withCredentials([string(credentialsId: 'nexus-nugetkey', variable: 'NUGET_API_KEY')]) {
 sh '''
 
-pwd
-ls -l 
-cat NuGet.Config
-
-                       echo | openssl s_client -connect nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov:443 -servername nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov 2>/dev/null | openssl x509 -inform pem -out nexus.crt
-                        CERT_DIR="/etc/pki/ca-trust/source/anchors/"
-                        cp /etc/pki/tls/certs/ca-bundle.crt /etc/pki/ca-trust/source/anchors/
-                        chmod 644 ${CERT_DIR}$(basename ${CERTIFICATE_PATH})
-			           update-ca-trust
-					   
-					   echo | openssl s_client -connect nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov:443 -servername nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov
-
-
-			  #dotnet nuget add source "${NEXUS_URL}/repository/${NEXUS_REPOSITORY}" --name "Nexus" --username "${NEXUS_CREDENTIALS_USR}" --password "${NEXUS_CREDENTIALS_PSW}" --store-password-in-clear-text
-                         #dotnet nuget push publish/* -k $NUGET_API_KEY -s https://nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov/repository/nuet-hosted/
                           dotnet nuget push publish/* -k $NUGET_API_KEY -s Nexus 
 		'''
         }
