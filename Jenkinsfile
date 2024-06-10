@@ -57,7 +57,7 @@ pipeline {
                 - name: jenkins-trusted-ca-bundle
                   mountPath: /etc/pki/tls/certs
             - name: cammismsbuild
-              image: mcr.microsoft.com/dotnet/aspnet:8.0
+              image: mcr.microsoft.com/dotnet/sdk:8.0
               tty: true
               command: ["/bin/bash"]
               securityContext:
