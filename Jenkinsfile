@@ -58,6 +58,7 @@ pipeline {
                   mountPath: /etc/pki/tls/certs
             - name: cammismsbuild
               image: 136299550619.dkr.ecr.us-west-2.amazonaws.com/cammismspapp:1.0.34
+	      #image: mcr.microsoft.com/dotnet/aspnet:8.0
               tty: true
               command: ["/bin/bash"]
               securityContext:
