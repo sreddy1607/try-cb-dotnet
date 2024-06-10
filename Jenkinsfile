@@ -57,8 +57,8 @@ pipeline {
                 - name: jenkins-trusted-ca-bundle
                   mountPath: /etc/pki/tls/certs
             - name: cammismsbuild
-              image: 136299550619.dkr.ecr.us-west-2.amazonaws.com/cammismspapp:1.0.34
-	      #image: mcr.microsoft.com/dotnet/aspnet:8.0
+              #image: 136299550619.dkr.ecr.us-west-2.amazonaws.com/cammismspapp:1.0.34
+	      image: mcr.microsoft.com/dotnet/aspnet:8.0
               tty: true
               command: ["/bin/bash"]
               securityContext:
@@ -144,10 +144,11 @@ pipeline {
           sh'''
           echo | openssl s_client -connect nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov:443 -servername nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov 2>/dev/null | openssl x509 -inform pem -out nexus.crt
                         ls -l
-                        CERT_DIR="/etc/pki/ca-trust/source/anchors/"
-                        cp nexus.crt /etc/pki/ca-trust/source/anchors/
+                        CERT_DIR="/etc/ssl/certs/"
+                        cp nexus.crt /etc/ssl/certs/
                         chmod 644 ${CERT_DIR}$(basename nexus.crt)
-			           update-ca-trust
+			cd /etc/ssl/certs
+			           update-ca-certificates
 					   
 					   echo | openssl s_client -connect nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov:443 -servername nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov
 					   '''
