@@ -213,7 +213,7 @@ pipeline {
           }
           withCredentials([string(credentialsId: 'nexus-nugetkey', variable: 'NUGET_API_KEY')]) {
             sh '''
-            dotnet nuget push publish/*.nupkg -k $NUGET_API_KEY -s Nexus 
+             nuget push publish/*.nupkg -k $NUGET_API_KEY -s Nexus 
             '''
           }
         }
