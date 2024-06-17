@@ -140,17 +140,26 @@ pipeline {
       steps {
         container('cammismsbuild') { 
           echo 'Cleaning existing HTTPS certificates'
-          sh'''
+          sh '''
+          if ! command -v update-ca-certificates &> /dev/null; then
+            if command -v apt-get &> /dev/null; then
+              apt-get update && apt-get install -y ca-certificates
+            elif command -v yum &> /dev/null; then
+              yum install -y ca-certificates
+            else
+              echo "Neither apt-get nor yum found. Exiting."
+              exit 1
+            fi
+          fi
           echo | openssl s_client -connect nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov:443 -servername nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov 2>/dev/null | openssl x509 -inform pem -out nexus.crt
-                        ls -l
-                        CERT_DIR="/etc/ssl/certs/"
-                        cp nexus.crt /etc/ssl/certs/
-                        chmod 644 ${CERT_DIR}$(basename nexus.crt)
-			cd /etc/ssl/certs
-			           update-ca-certificates
-					   
-					   echo | openssl s_client -connect nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov:443 -servername nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov
-					   '''
+          ls -l
+          CERT_DIR="/etc/ssl/certs/"
+          cp nexus.crt ${CERT_DIR}
+          chmod 644 ${CERT_DIR}$(basename nexus.crt)
+          cd ${CERT_DIR}
+          update-ca-certificates
+          echo | openssl s_client -connect nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov:443 -servername nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov
+          '''
         }
       }
     }
@@ -158,7 +167,6 @@ pipeline {
     stage('Restore Dependencies') {
       steps {
         container('cammismsbuild') {
-           
           sh 'dotnet restore'
         }
       }
@@ -191,9 +199,9 @@ pipeline {
     stage('Push to Nexus') {
       steps {
         container('cammismsbuild') {
-		      script{
-// Write custom settings.xml file
- writeFile file: 'NuGet.Config', text: """<?xml version="1.0" encoding="utf-8"?>
+          script {
+            // Write custom settings.xml file
+            writeFile file: 'NuGet.Config', text: """<?xml version="1.0" encoding="utf-8"?>
 <configuration>
    <config>
     <add key="http-client.sslProtocols" value="Tls12,Tls13" />
@@ -210,12 +218,12 @@ pipeline {
   </packageSourceCredentials>
 </configuration>
 """
-}
-              withCredentials([string(credentialsId: 'nexus-nugetkey', variable: 'NUGET_API_KEY')]) {
-sh '''
-
-                          dotnet nuget push publish/* -k $NUGET_API_KEY -s Nexus 
-		'''
+          }
+          withCredentials([string(credentialsId: 'nexus-nugetkey', variable: 'NUGET_API_KEY')]) {
+            sh '''
+            dotnet nuget push publish/* -k $NUGET_API_KEY -s Nexus 
+            '''
+          }
         }
       }
     }
