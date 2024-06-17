@@ -2,6 +2,10 @@ def branch = env.BRANCH_NAME ?: "ecr"
 def namespace = env.NAMESPACE ?: "dev"
 def workingDir = "/home/jenkins/agent"
 
+def branch = env.BRANCH_NAME ?: "ecr"
+def namespace = env.NAMESPACE ?: "dev"
+def workingDir = "/home/jenkins/agent"
+
 pipeline {
   agent {
     kubernetes {
@@ -221,3 +225,4 @@ pipeline {
     }
   }
 }
+
