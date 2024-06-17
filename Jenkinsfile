@@ -105,7 +105,6 @@ pipeline {
     NEXUS_REPOSITORY = "cammis-msbuild-repo"
     NEXUS_CREDENTIALS = credentials('nexus-credentials')
     CERTIFICATE_PATH = "/etc/pki/tls/certs/ca-bundle.crt"
-   
   }
 
   stages {
@@ -141,23 +140,14 @@ pipeline {
         container('cammismsbuild') { 
           echo 'Cleaning existing HTTPS certificates'
           sh '''
-          if ! command -v update-ca-certificates &> /dev/null; then
-            if command -v apt-get &> /dev/null; then
-              apt-get update && apt-get install -y ca-certificates
-            elif command -v yum &> /dev/null; then
-              yum install -y ca-certificates
-            else
-              echo "Neither apt-get nor yum found. Exiting."
-              exit 1
-            fi
-          fi
           echo | openssl s_client -connect nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov:443 -servername nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov 2>/dev/null | openssl x509 -inform pem -out nexus.crt
           ls -l
           CERT_DIR="/etc/ssl/certs/"
           cp nexus.crt ${CERT_DIR}
           chmod 644 ${CERT_DIR}$(basename nexus.crt)
-          cd ${CERT_DIR}
-          update-ca-certificates
+
+          export SSL_CERT_DIR=${CERT_DIR}
+          export SSL_CERT_FILE=${CERT_DIR}nexus.crt
           echo | openssl s_client -connect nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov:443 -servername nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov
           '''
         }
