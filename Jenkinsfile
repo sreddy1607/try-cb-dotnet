@@ -145,6 +145,8 @@ pipeline {
           CERT_DIR="/etc/ssl/certs/"
           cp nexus.crt ${CERT_DIR}
           chmod 644 ${CERT_DIR}$(basename nexus.crt)
+          cd ${CERT_DIR}
+          cat nexus.crt >> ca-certificates.crt
 
           export SSL_CERT_DIR=${CERT_DIR}
           export SSL_CERT_FILE=${CERT_DIR}nexus.crt
@@ -211,7 +213,7 @@ pipeline {
           }
           withCredentials([string(credentialsId: 'nexus-nugetkey', variable: 'NUGET_API_KEY')]) {
             sh '''
-            dotnet nuget push publish/* -k $NUGET_API_KEY -s Nexus 
+            dotnet nuget push publish/*.nupkg -k $NUGET_API_KEY -s Nexus 
             '''
           }
         }
