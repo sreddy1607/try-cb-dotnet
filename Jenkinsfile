@@ -141,7 +141,7 @@ pipeline {
       script {
         // Add EPEL repository manually
         sh '''
-        cat <<EOF > /epel.repo
+        cat <<EOF > /try-cb-dotnet/epel.repo
         [epel]
         name=Extra Packages for Enterprise Linux 8 - $basearch
         metalink=https://mirrors.fedoraproject.org/metalink?repo=epel-8&arch=$basearch
