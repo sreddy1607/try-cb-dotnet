@@ -57,7 +57,7 @@ pipeline {
                 - name: jenkins-trusted-ca-bundle
                   mountPath: /etc/pki/tls/certs
             - name: cammismsbuild
-              image: mcr.microsoft.com/dotnet/sdk:8.0
+              image: 136299550619.dkr.ecr.us-west-2.amazonaws.com/cammismspapp:1.0.38
               tty: true
               command: ["/bin/bash"]
               securityContext:
@@ -200,7 +200,7 @@ pipeline {
     <add key="allowUntrustedRoot" value="true" />
   </config>
    <packageSources>
-      <add key="Nexus" value="https://nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov/repository/nuet-hosted/" />
+      <add key="Nexus" value="https://nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov/repository/nuget-hosted/" />
    </packageSources>
   <packageSourceCredentials>
     <Nexus>
