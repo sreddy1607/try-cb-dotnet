@@ -135,26 +135,51 @@ pipeline {
       }
     }
 
-    stage('Setup HTTPS Certificates') {
-      steps {
-        container('cammismsbuild') { 
-          echo 'Cleaning existing HTTPS certificates'
-          sh '''
-          echo | openssl s_client -connect nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov:443 -servername nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov 2>/dev/null | openssl x509 -inform pem -out nexus.crt
-          ls -l
-          CERT_DIR="/etc/ssl/certs/"
-          cp nexus.crt ${CERT_DIR}
-          chmod 644 ${CERT_DIR}$(basename nexus.crt)
-          cd ${CERT_DIR}
-          cat nexus.crt >> ca-certificates.crt
-
-          export SSL_CERT_DIR=${CERT_DIR}
-          export SSL_CERT_FILE=${CERT_DIR}nexus.crt
-          echo | openssl s_client -connect nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov:443 -servername nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov
-          '''
-        }
+    stage('Install Mono') {
+  steps {
+    container('cammismsbuild') {
+      script {
+        // Update repositories and install necessary packages
+        sh '''
+        yum update -y
+        yum install -y epel-release
+        yum install -y mono-complete
+        '''
       }
     }
+  }
+}
+
+   stage('Setup HTTPS Certificates') {
+  steps {
+    container('cammismsbuild') {
+      script {
+        sh '''
+        # Fetch the SSL certificate from Nexus
+        echo | openssl s_client -connect nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov:443 -servername nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov 2>/dev/null | openssl x509 -inform pem -out nexus.crt
+        
+        # Determine the certificate directory
+        CERT_DIR="/etc/ssl/certs/"
+        
+        # Copy and set permissions for the certificate
+        cp nexus.crt ${CERT_DIR}
+        chmod 644 ${CERT_DIR}$(basename nexus.crt)
+        
+        # Update ca-certificates bundle
+        cd ${CERT_DIR}
+        cat nexus.crt >> ca-certificates.crt
+        
+        # Set environment variables for SSL certificates
+        export SSL_CERT_DIR=${CERT_DIR}
+        export SSL_CERT_FILE=${CERT_DIR}nexus.crt
+        
+        # Verify the certificate installation
+        echo | openssl s_client -connect nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov:443 -servername nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov
+        '''
+      }
+    }
+  }
+}
 
     stage('Restore Dependencies') {
       steps {
