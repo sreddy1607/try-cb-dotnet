@@ -1,0 +1,29 @@
+<PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Module.1</RootNamespace>
+    <Company>Test</Company>
+    <Product>Test</Product>
+</PropertyGroup>
+
+<PropertyGroup>
+    <NuGetAudit>false</NuGetAudit>
+    <IsPackable>true</IsPackable>
+    <IncludeSymbols>true</IncludeSymbols>
+    <PackageId>Module.1</PackageId>
+    <Version>3.0.0</Version>
+    <Authors>Test</Authors>
+    <Company>Test</Company>
+</PropertyGroup>
+
+<ItemGroup>
+    <PackageReference Include="Module.2" Version="3.0.0" />
+    <PackageReference Include="Module.3" Version="3.0.0" />
+    <PackageReference Include="Module.4" Version="3.0.0" />
+    <PackageReference Include="Refit.HttpClientFactory" Version="7.0.0" />
+</ItemGroup>
+
+<ItemGroup>
+  <ProjectReference Include="..\Module.2\Module.2.csproj" />
+</ItemGroup>
