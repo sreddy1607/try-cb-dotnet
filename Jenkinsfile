@@ -206,7 +206,8 @@ pipeline {
 <configuration>
    <config>
     <add key="http-client.sslProtocols" value="Tls12,Tls13" />
-    <add key="allowUntrustedRoot" value="true" />
+    <add key="http-client-ssl-error" value="ignore" />
+
   </config>
    <packageSources>
       <add key="Nexus" value="https://nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov/repository/nuget-hosted/" />
