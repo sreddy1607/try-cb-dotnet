@@ -8,4 +8,9 @@
 
   <!-- Package references and other configurations -->
 
+<ItemGroup>
+  <PackageReference Include="Couchbase.Extensions.DependencyInjection" Version="3.4.13" />
+  <PackageReference Include="CouchbaseNetClient" Version="3.4.13" />
+</ItemGroup>
+
 </Project>
