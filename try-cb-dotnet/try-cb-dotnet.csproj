@@ -19,8 +19,8 @@
 
 <ItemGroup>
   <PackageReference Include="IdentityModel.AspNetCore.OAuth2Introspection" Version="5.1.0" />
-  <!-- Additional packages as needed -->
 </ItemGroup>
+
 
 <ItemGroup>
     <Content Update="appsettings.json">
