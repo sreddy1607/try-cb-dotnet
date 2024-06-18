@@ -57,7 +57,7 @@ pipeline {
                 - name: jenkins-trusted-ca-bundle
                   mountPath: /etc/pki/tls/certs
             - name: cammismsbuild
-              image: 136299550619.dkr.ecr.us-west-2.amazonaws.com/cammismspapp:1.0.38
+              image: 136299550619.dkr.ecr.us-west-2.amazonaws.com/cammismspapp:1.0.39
               tty: true
               command: ["/bin/bash"]
               securityContext:
@@ -135,46 +135,7 @@ pipeline {
       }
     }
 
-    stage('Install EPEL Repository') {
-  steps {
-    container('cammismsbuild') {
-      script {
-        // Add EPEL repository manually
-        sh '''
-        cat <<EOF > /try-cb-dotnet/epel.repo
-        [epel]
-        name=Extra Packages for Enterprise Linux 8 - $basearch
-        metalink=https://mirrors.fedoraproject.org/metalink?repo=epel-8&arch=$basearch
-        failovermethod=priority
-        enabled=1
-        gpgcheck=1
-        gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-8
-        EOF
-
-        rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-8
-        yum clean all
-        yum install -y epel-release
-        '''
-      }
-    }
-  }
-}
-
-    stage('Install Mono') {
-  steps {
-    container('cammismsbuild') {
-      script {
-        // Update repositories and install necessary packages
-        sh '''
-        yum update -y
-        yum install -y epel-release
-        yum install -y mono-complete
-        '''
-      }
-    }
-  }
-}
-
+   
    stage('Setup HTTPS Certificates') {
   steps {
     container('cammismsbuild') {
