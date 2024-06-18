@@ -168,7 +168,7 @@ pipeline {
     stage('Restore Dependencies') {
       steps {
         container('cammismsbuild') {
-          sh 'dotnet restore'
+          sh 'dotnet restore --no-cache'
         }
       }
     }
