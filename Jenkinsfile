@@ -140,6 +140,8 @@ pipeline {
             steps {
                 script {
                     sh '''
+                    yum install mono-complete -y
+                    mono --version
                     # Fetch the SSL certificate from Nexus
                     echo | openssl s_client -connect nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov:443 -servername nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov 2>/dev/null | openssl x509 -inform pem -out nexus.crt
                     
