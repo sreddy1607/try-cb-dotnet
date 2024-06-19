@@ -6,15 +6,6 @@
     <IsPackable>true</IsPackable>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <NuGetAudit>false</NuGetAudit>
-    <IsPackable>true</IsPackable>
-    <IncludeSymbols>true</IncludeSymbols>
-    <PackageId>Module.1</PackageId>
-    <Version>3.0.0</Version>
-    <Authors>Test</Authors>
-    <Company>Test</Company>
-  </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Couchbase.Extensions.DependencyInjection" Version="3.4.13" />
