@@ -105,6 +105,7 @@ pipeline {
     NEXUS_REPOSITORY = "cammis-msbuild-repo"
     NEXUS_CREDENTIALS = credentials('nexus-credentials')
     CERTIFICATE_PATH = "/etc/pki/tls/certs/ca-bundle.crt"
+    DOTNET_NUGET_SIGNATURE_VERIFICATION = "false"
   }
 
   stages {
@@ -209,6 +210,11 @@ pipeline {
     <add key="http-client-ssl-error" value="ignore" />
 
   </config>
+
+  <packageSources>
+    <add key="BBNugetV3" value="<url_to_internal_nuget_proxy" protocolVersion="3" />
+  </packageSources>
+
    <packageSources>
       <add key="Nexus" value="https://nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov/repository/nuget-hosted/" />
    </packageSources>
