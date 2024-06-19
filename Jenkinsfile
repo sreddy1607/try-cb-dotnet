@@ -211,11 +211,7 @@ pipeline {
 
   </config>
 
-  <packageSources>
-    <add key="BBNugetV3" value="<url_to_internal_nuget_proxy" protocolVersion="3" />
-  </packageSources>
-
-   <packageSources>
+     <packageSources>
       <add key="Nexus" value="https://nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov/repository/nuget-hosted/" />
    </packageSources>
   <packageSourceCredentials>
