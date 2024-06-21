@@ -57,7 +57,7 @@ pipeline {
                 - name: jenkins-trusted-ca-bundle
                   mountPath: /etc/pki/tls/certs
             - name: cammismsbuild
-              image: 136299550619.dkr.ecr.us-west-2.amazonaws.com/cammismspapp:1.0.40
+              image: 136299550619.dkr.ecr.us-west-2.amazonaws.com/cammismspapp:1.0.41
               tty: true
               command: ["/bin/bash"]
               securityContext:
