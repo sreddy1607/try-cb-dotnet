@@ -138,7 +138,9 @@ pipeline {
 
    
    stage('Setup HTTPS Certificates') {
-            steps {
+      steps {
+        container(name: "cammismsbuild") {
+      
                 script {
                     sh '''
                     ls -l /usr/local/share/ca-certificates/
@@ -167,6 +169,7 @@ pipeline {
                 }
             }
         }
+   }
 
     stage('Restore Dependencies') {
       steps {
