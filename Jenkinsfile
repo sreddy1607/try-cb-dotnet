@@ -141,23 +141,25 @@ pipeline {
             steps {
                 script {
                     sh '''
+                    ls -l /usr/local/share/ca-certificates/
+                    ls -l /etc/pki/ca-trust/source/anchors/
                     # Fetch the SSL certificate from Nexus
-                    echo | openssl s_client -connect nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov:443 -servername nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov 2>/dev/null | openssl x509 -inform pem -out nexus.crt
+                   # echo | openssl s_client -connect nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov:443 -servername nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov 2>/dev/null | openssl x509 -inform pem -out nexus.crt
                     
                     # Determine the certificate directory
-                    CERT_DIR="/etc/ssl/certs/"
+                   # CERT_DIR="/etc/ssl/certs/"
                     
                     # Copy and set permissions for the certificate
-                    cp nexus.crt ${CERT_DIR}
-                    chmod 644 ${CERT_DIR}$(basename nexus.crt)
+                   # cp nexus.crt ${CERT_DIR}
+                    #chmod 644 ${CERT_DIR}$(basename nexus.crt)
                     
                     # Update ca-certificates bundle
-                    cd ${CERT_DIR}
-                    cat nexus.crt >> ca-certificates.crt
+                   # cd ${CERT_DIR}
+                   # cat nexus.crt >> ca-certificates.crt
                     
                     # Set environment variables for SSL certificates
-                    export SSL_CERT_DIR=${CERT_DIR}
-                    export SSL_CERT_FILE=${CERT_DIR}nexus.crt
+                   # export SSL_CERT_DIR=${CERT_DIR}
+                   # export SSL_CERT_FILE=${CERT_DIR}nexus.crt
                     
                     # Verify the certificate installation
                     echo | openssl s_client -connect nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov:443 -servername nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov
