@@ -57,7 +57,7 @@ pipeline {
                 - name: jenkins-trusted-ca-bundle
                   mountPath: /etc/pki/tls/certs
             - name: cammismsbuild
-              image: 136299550619.dkr.ecr.us-west-2.amazonaws.com/cammismspapp:1.0.41
+              image: 136299550619.dkr.ecr.us-west-2.amazonaws.com/cammismspapp:1.0.42
               tty: true
               command: ["/bin/bash"]
               securityContext:
@@ -210,13 +210,7 @@ pipeline {
             // Write custom settings.xml file
             writeFile file: 'NuGet.Config', text: """<?xml version="1.0" encoding="utf-8"?>
 <configuration>
-   <config>
-    <add key="http-client.sslProtocols" value="Tls12,Tls13" />
-    <add key="http-client-ssl-error" value="ignore" />
-
-  </config>
-
-     <packageSources>
+       <packageSources>
       <add key="Nexus" value="https://nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov/repository/nuget-hosted/" />
    </packageSources>
   <packageSourceCredentials>
@@ -231,7 +225,7 @@ pipeline {
           withCredentials([string(credentialsId: 'nexus-nugetkey', variable: 'NUGET_API_KEY')]) {
             sh '''
             ls -l
-             nuget push publish/*.nupkg -ConfigFile NuGet.Config -ApiKey $NUGET_API_KEY -src Nexus 
+             dotnet nuget push publish/*.nupkg -ConfigFile NuGet.Config -ApiKey $NUGET_API_KEY -src Nexus 
              
             '''
           }
