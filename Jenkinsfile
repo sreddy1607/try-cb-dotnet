@@ -35,27 +35,6 @@ pipeline {
               volumeMounts:
                 - name: jenkins-trusted-ca-bundle
                   mountPath: /etc/pki/tls/certs
-            - name: node
-              image: registry.access.redhat.com/ubi8/nodejs-16:latest
-              tty: true
-              command: ["/bin/bash"]
-              securityContext:
-                privileged: true
-              workingDir: "${workingDir}"
-              envFrom:
-                - configMapRef:
-                    name: jenkins-agent-env
-                    optional: true
-              env:
-                - name: HOME
-                  value: "${workingDir}"
-                - name: BRANCH
-                  value: "${branch}"
-                - name: GIT_SSL_CAINFO
-                  value: "/etc/pki/tls/certs/ca-bundle.crt"
-              volumeMounts:
-                - name: jenkins-trusted-ca-bundle
-                  mountPath: /etc/pki/tls/certs
             - name: cammismsbuild
               image: 136299550619.dkr.ecr.us-west-2.amazonaws.com/cammismspapp:1.0.42
               tty: true
@@ -90,7 +69,7 @@ pipeline {
     disableConcurrentBuilds()
     timeout(time: 5, unit: 'HOURS')
     skipDefaultCheckout()
-    buildDiscarder(logRotator(numToKeepStr: '70'))
+    buildDiscarder(logRotator(numToKeepStr: '10'))
   }
 
   environment {
@@ -136,41 +115,6 @@ pipeline {
       }
     }
 
-   
-   stage('Setup HTTPS Certificates') {
-      steps {
-        container(name: "cammismsbuild") {
-      
-                script {
-                    sh '''
-                    ls -l /usr/local/share/ca-certificates/
-                    ls -l /etc/pki/ca-trust/source/anchors/
-                    # Fetch the SSL certificate from Nexus
-                   # echo | openssl s_client -connect nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov:443 -servername nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov 2>/dev/null | openssl x509 -inform pem -out nexus.crt
-                    
-                    # Determine the certificate directory
-                   # CERT_DIR="/etc/ssl/certs/"
-                    
-                    # Copy and set permissions for the certificate
-                   # cp nexus.crt ${CERT_DIR}
-                    #chmod 644 ${CERT_DIR}$(basename nexus.crt)
-                    
-                    # Update ca-certificates bundle
-                   # cd ${CERT_DIR}
-                   # cat nexus.crt >> ca-certificates.crt
-                    
-                    # Set environment variables for SSL certificates
-                   # export SSL_CERT_DIR=${CERT_DIR}
-                   # export SSL_CERT_FILE=${CERT_DIR}nexus.crt
-                    
-                    # Verify the certificate installation
-                    echo | openssl s_client -connect nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov:443 -servername nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov
-                    '''
-                }
-            }
-        }
-   }
-
     stage('Restore Dependencies') {
       steps {
         container('cammismsbuild') {
@@ -207,31 +151,17 @@ pipeline {
       steps {
         container('cammismsbuild') {
           script {
-            // Write custom settings.xml file
-            writeFile file: 'NuGet.Config', text: """<?xml version="1.0" encoding="utf-8"?>
-<configuration>
-       <packageSources>
-      <add key="Nexus" value="https://nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov/repository/nuget-hosted/" />
-   </packageSources>
-  <packageSourceCredentials>
-    <Nexus>
-      <add key="Username" value="nexuspoc" />
-      <add key="ClearTextPassword" value="Nexus123!" />
-    </Nexus>
-  </packageSourceCredentials>
-</configuration>
-"""
-          }
-          withCredentials([string(credentialsId: 'nexus-nugetkey', variable: 'NUGET_API_KEY')]) {
+         
             sh '''
-            ls -l
-             dotnet nuget push publish/*.nupkg -ConfigFile NuGet.Config -ApiKey $NUGET_API_KEY -src Nexus 
-             
-            '''
+for file in publish/*.nupkg; do
+  curl -k -v -u ${NEXUS_CREDENTIALS_USR}:${NEXUS_CREDENTIALS_PSW} -F "nuget.asset=@$file" "https://nexusrepo-tools.apps.bld.cammis.medi-cal.ca.gov/service/rest/v1/components?repository=${NEXUS_REPOSITORY}"
+
+done
+           '''
+          
           }
         }
       }
     }
   }
 }
-
