@@ -1,0 +1,23 @@
+version: 0.0
+os: windows
+files:
+  - source: \scripts
+    destination: D:\rais-eis-staging\scripts
+  - source: \serverconfig
+    destination: D:\rais-eis-staging\serverconfig
+  - source: \environment
+    destination: D:\rais-eis-staging\environment
+  - source: \eiswapi
+    destination: D:\rais-eis-staging\app\eiswapi
+  - source: \eisauthapi
+    destination: D:\rais-eis-staging\app\eisauthapi
+  - source: \eisfilesvc
+    destination: D:\rais-eis-staging\app\eisfilesvc
+file_exists_behavior: OVERWRITE
+hooks:
+  BeforeInstall:
+    - location: \before-install.bat
+      timeout: 900
+  AfterInstall:
+    - location: \after-install.bat
+      timeout: 900
